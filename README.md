@@ -1,3 +1,4 @@
+
 # ☕ CoffeeMonitor Colombia
 
 **Plataforma de inteligencia de mercado para el sector cafetero colombiano.**
@@ -159,3 +160,7 @@ CoffeeMonitorColombia/
 ---
 
 *Green Coffee Company — Inteligencia de Mercado Cafetero*
+=======
+# CoffeeMonitorColombia
+Sistema de Inteligencia del Mercado Cafetero Colombiano
+>>>>>>> d93f6a591bfc97208a408890a9e80c5877f23bc3
