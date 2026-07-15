@@ -1,0 +1,52 @@
+# ─────────────────────────────────────────────
+# CoffeeMonitor Colombia - .gitignore
+# ─────────────────────────────────────────────
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/.history/
+*.swp
+*.swo
+*~
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project data (no subir datos locales)
+data/*.db
+data/*.db-wal
+data/*.db-shm
+exports/*
+logs/*
+
+# Mantener las carpetas vacías
+!data/.gitkeep
+!exports/.gitkeep
+!logs/.gitkeep
+
+# Environment variables
+.env
+
+# pytest
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml

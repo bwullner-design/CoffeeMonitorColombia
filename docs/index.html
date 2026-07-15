@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>CoffeeMonitor Colombia</title>
+
+<!-- PWA / iPad Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CoffeeMonitor">
+<meta name="theme-color" content="#2C1810">
+<meta name="description" content="Inteligencia de mercado para el sector cafetero colombiano">
+
+<!-- Apple Touch Icon (SVG inline as data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjMkMxODEwIi8+PHRleHQgeD0iOTAiIHk9IjEwNSIgZm9udC1zaXplPSI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+4piVPC90ZXh0Pjx0ZXh0IHg9IjkwIiB5PSIxNDUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiNDODk2NUQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhIiBmb250LXdlaWdodD0iNzAwIj5Db2ZmZWVNb25pdG9yPC90ZXh0Pjwvc3ZnPg==">
+
+<style>
+:root {
+  --dark: #1E1108; --roast: #2C1810; --bean: #4A3228;
+  --green: #3D7A4F; --green-light: #5A9E6F;
+  --cream: #FBF6F0; --parchment: #F3EDE4;
+  --caramel: #C8965D; --rust: #B83D1A; --gold: #D4A04A;
+  --text: #1A1210; --muted: #8A7D76; --border: #E4DDD5;
+  --white: #FFFFFF;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  background: var(--parchment); color: var(--text);
+  min-height: 100vh; overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+input, select, button { font-family: inherit; }
+input, select {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid var(--border); font-size: 16px;
+  color: var(--text); background: var(--parchment);
+  -webkit-appearance: none; outline: none;
+}
+input:focus, select:focus { border-color: var(--green); }
+button { cursor: pointer; border: none; }
+
+/* ─── Header ─── */
+.header {
+  background: var(--roast); padding: 16px 20px 14px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.header-logo { display: flex; align-items: center; gap: 10px; }
+.header-logo .icon { font-size: 26px; }
+.header-title { color: var(--cream); font-size: 18px; font-weight: 700; font-family: Georgia, serif; letter-spacing: 0.3px; }
+.header-sub { color: var(--caramel); font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; }
+.header-date { color: var(--caramel); font-size: 12px; }
+
+/* ─── Tabs ─── */
+.tab-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  background: var(--white); border-top: 1px solid var(--border);
+  display: flex; justify-content: space-around;
+  padding: 6px 0; padding-bottom: calc(6px + var(--safe-b));
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+}
+.tab-btn {
+  background: none; display: flex; flex-direction: column;
+  align-items: center; gap: 2px; padding: 4px 14px;
+  color: var(--muted); font-size: 10px; font-weight: 500;
+  position: relative; transition: color 0.2s;
+}
+.tab-btn.active { color: var(--green); font-weight: 700; }
+.tab-btn .tab-icon { font-size: 24px; }
+.tab-badge {
+  position: absolute; top: 0; right: 6px;
+  background: var(--rust); color: var(--white);
+  font-size: 9px; font-weight: 700;
+  width: 16px; height: 16px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ─── Content ─── */
+.content { padding: 16px; padding-bottom: calc(90px + var(--safe-b)); }
+.section-label {
+  font-size: 12px; color: var(--muted); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+}
+.card {
+  background: var(--white); border-radius: 14px; padding: 16px;
+  margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.card-title { font-size: 14px; font-weight: 700; color: var(--bean); margin-bottom: 10px; }
+
+/* ─── KPI Grid ─── */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+@media (min-width: 768px) { .kpi-grid { grid-template-columns: 1fr 1fr 1fr 1fr; } }
+.kpi { background: var(--white); border-radius: 14px; padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.kpi-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.kpi-value { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.kpi-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+.kpi-change { font-size: 11px; font-weight: 700; margin-top: 4px; }
+.kpi-change.up { color: var(--green); }
+.kpi-change.down { color: var(--rust); }
+
+/* ─── Ranking ─── */
+.rank-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.rank-row:last-child { border-bottom: none; }
+.rank-num {
+  width: 26px; height: 26px; border-radius: 13px;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.rank-num.gold { background: var(--gold); color: var(--white); }
+.rank-num.silver { background: #B8B8B8; color: var(--white); }
+.rank-num.bronze { background: #CD7F32; color: var(--white); }
+.rank-num.other { background: var(--parchment); color: var(--muted); }
+.rank-name { font-size: 13px; font-weight: 500; margin-left: 10px; }
+.rank-price { font-size: 15px; font-weight: 700; color: var(--roast); text-align: right; }
+.rank-dif { font-size: 11px; font-weight: 600; text-align: right; }
+.rank-dif.positive { color: var(--green); }
+.rank-dif.alert { color: var(--rust); }
+
+/* ─── Forms ─── */
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin: 10px 0 4px; }
+.form-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.btn-primary {
+  width: 100%; padding: 14px; border-radius: 12px;
+  background: var(--green); color: var(--white);
+  font-size: 15px; font-weight: 700; margin-top: 10px;
+  transition: opacity 0.2s;
+}
+.btn-primary:active { opacity: 0.8; }
+.btn-primary.dark { background: var(--bean); }
+.btn-sm {
+  padding: 7px 16px; border-radius: 8px;
+  background: var(--green); color: var(--white);
+  font-size: 12px; font-weight: 600;
+}
+.btn-sm:disabled { opacity: 0.5; }
+.btn-sm.muted { background: var(--parchment); color: var(--muted); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+/* ─── Alerts ─── */
+.alert-card {
+  background: var(--white); border-radius: 14px; padding: 14px;
+  margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border-left: 4px solid var(--gold);
+}
+.alert-card.critical { border-left-color: var(--rust); }
+.alert-card.info { border-left-color: var(--green); }
+.alert-meta { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+.alert-msg { font-size: 13px; font-weight: 600; }
+
+/* ─── Table ─── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; padding: 6px 8px; font-weight: 700; color: var(--bean); font-size: 11px; border-bottom: 2px solid var(--border); }
+.data-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+
+/* ─── Empty ─── */
+.empty { text-align: center; padding: 48px 24px; }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-title { font-size: 17px; font-weight: 700; color: var(--roast); margin-bottom: 6px; }
+.empty-desc { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+/* ─── Toast ─── */
+.toast {
+  position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 100;
+  padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  color: var(--white); box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  animation: toastIn 0.3s ease-out;
+}
+.toast.success { background: var(--green); }
+.toast.error { background: var(--rust); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">
+    <span class="icon">☕</span>
+    <div>
+      <div class="header-title">CoffeeMonitor</div>
+      <div class="header-sub">Colombia</div>
+    </div>
+  </div>
+  <div class="header-date" id="headerDate"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast hidden" id="toast"></div>
+
+<!-- Content Pages -->
+<div id="page-dashboard" class="content"></div>
+<div id="page-captura" class="content hidden"></div>
+<div id="page-historico" class="content hidden"></div>
+<div id="page-alertas" class="content hidden"></div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="dashboard"><span class="tab-icon">📊</span>Mercado</button>
+  <button class="tab-btn" data-tab="captura"><span class="tab-icon">✏️</span>Captura</button>
+  <button class="tab-btn" data-tab="historico"><span class="tab-icon">📈</span>Histórico</button>
+  <button class="tab-btn" data-tab="alertas" id="tabAlertas">
+    <span class="tab-icon" id="alertIcon">🔕</span>Alertas
+    <span class="tab-badge hidden" id="alertBadge">0</span>
+  </button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CoffeeMonitor Colombia — PWA Engine
+// ═══════════════════════════════════════════
+
+const COOPS = [
+  { id: "coop_antioquia", nombre: "Coop. Caficultores Antioquia", dept: "Antioquia" },
+  { id: "coocafisa", nombre: "COOCAFISA (Salgar)", dept: "Antioquia" },
+  { id: "coop_occidente", nombre: "Coop. Occidente Antioquia", dept: "Antioquia" },
+  { id: "cooperacafe", nombre: "Cooperacafé (Catatumbo)", dept: "N. Santander" },
+  { id: "coop_andes", nombre: "Coop. Caficultores Andes", dept: "Antioquia" },
+];
+const DIF_MAX = 35000;
+
+// ─── Storage ───
+function load(key, fallback) {
+  try { const d = localStorage.getItem("cm_" + key); return d ? JSON.parse(d) : fallback; }
+  catch { return fallback; }
+}
+function save(key, data) {
+  try { localStorage.setItem("cm_" + key, JSON.stringify(data)); } catch(e) { console.error(e); }
+}
+
+let marketData = load("market", []);
+let coopData = load("coops", []);
+let alertsData = load("alerts", []);
+let currentTab = "dashboard";
+
+// ─── Helpers ───
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const fCOP = v => v != null ? "$" + Number(v).toLocaleString("es-CO") : "—";
+const fUSD = v => v != null ? "$" + Number(v).toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
+const fNY = v => v != null ? Number(v).toFixed(2) + " ¢/lb" : "—";
+const shortD = d => { const p = d.split("-"); return p[2] + "/" + p[1]; };
+const parseCOP = s => { if (!s) return null; return parseFloat(s.replace(/\./g, "").replace(",", ".")); };
+
+// ─── Toast ───
+let toastTimer;
+function showToast(msg, type = "success") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast " + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add("hidden"), 3000);
+}
+
+// ─── Tab Navigation ───
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentTab = btn.dataset.tab;
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll("[id^='page-']").forEach(p => p.classList.add("hidden"));
+    document.getElementById("page-" + currentTab).classList.remove("hidden");
+    render();
+  });
+});
+
+// ─── Date header ───
+document.getElementById("headerDate").textContent = new Date().toLocaleDateString("es-CO", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+
+// ─── Fetch TRM ───
+async function fetchTRM() {
+  const btn = document.getElementById("btnFetchTRM");
+  if (btn) { btn.disabled = true; btn.textContent = "Obteniendo..."; }
+  try {
+    const res = await fetch("https://www.datos.gov.co/resource/32sa-8pi3.json?$order=vigenciadesde%20DESC&$limit=5");
+    const data = await res.json();
+    if (data?.length > 0) {
+      const trm = parseFloat(data[0].valor);
+      const fecha = data[0].vigenciadesde?.slice(0, 10);
+      const elTRM = document.getElementById("capTRM");
+      const elDate = document.getElementById("capDate");
+      if (elTRM) elTRM.value = trm.toFixed(2);
+      if (elDate && fecha) elDate.value = fecha;
+      showToast("TRM obtenida: " + fUSD(trm) + " (" + fecha + ")");
+    }
+  } catch (e) {
+    showToast("Error obteniendo TRM", "error");
+  }
+  if (btn) { btn.disabled = false; btn.textContent = "Obtener TRM"; }
+}
+
+// ─── Save Market ───
+function saveMarket() {
+  const fecha = document.getElementById("capDate").value;
+  const fnc = parseCOP(document.getElementById("capFNC").value);
+  const ny = parseCOP(document.getElementById("capNY").value);
+  const trm = parseCOP(document.getElementById("capTRM").value);
+  if (!fnc && !ny && !trm) { showToast("Ingrese al menos un dato", "error"); return; }
+  if (fnc && (fnc < 500000 || fnc > 5000000)) { showToast("Precio FNC fuera de rango", "error"); return; }
+
+  const idx = marketData.findIndex(m => m.fecha === fecha);
+  const entry = { fecha, precio_fnc: fnc, bolsa_ny: ny, trm, ts: new Date().toISOString() };
+  if (idx >= 0) {
+    Object.keys(entry).forEach(k => { if (entry[k] != null) marketData[idx][k] = entry[k]; });
+  } else {
+    marketData.push(entry);
+    marketData.sort((a, b) => a.fecha.localeCompare(b.fecha));
+  }
+  save("market", marketData);
+  showToast("Mercado guardado: " + fecha);
+  document.getElementById("capFNC").value = "";
+  document.getElementById("capNY").value = "";
+  render();
+}
+
+// ─── Save Coop ───
+function saveCoopPrice() {
+  const fecha = document.getElementById("capDate").value;
+  const coopId = document.getElementById("capCoopId").value;
+  const precio = parseCOP(document.getElementById("capCoopPrice").value);
+  const factor = parseInt(document.getElementById("capCoopFactor").value);
+  if (!precio) { showToast("Ingrese precio de la cooperativa", "error"); return; }
+
+  const coop = COOPS.find(c => c.id === coopId);
+  const entry = { fecha, source_id: coopId, nombre: coop.nombre, precio_carga: precio, factor, ts: new Date().toISOString() };
+  const idx = coopData.findIndex(p => p.fecha === fecha && p.source_id === coopId);
+  if (idx >= 0) coopData[idx] = entry;
+  else { coopData.push(entry); coopData.sort((a, b) => a.fecha.localeCompare(b.fecha)); }
+  save("coops", coopData);
+
+  // R001 check
+  const mkt = marketData.find(m => m.fecha === fecha);
+  if (mkt?.precio_fnc && precio - mkt.precio_fnc > DIF_MAX) {
+    const alert = {
+      id: Date.now(), fecha, regla: "R001", severidad: "warning",
+      source_id: coopId, nombre: coop.nombre,
+      mensaje: coop.nombre + " paga " + fCOP(precio - mkt.precio_fnc) + " sobre FNC (límite: " + fCOP(DIF_MAX) + ")"
+    };
+    alertsData.push(alert);
+    save("alerts", alertsData);
+  }
+  showToast("Precio guardado: " + coop.nombre);
+  document.getElementById("capCoopPrice").value = "";
+  render();
+}
+
+function resolveAlert(id) {
+  alertsData = alertsData.map(a => a.id === id ? { ...a, resolved: true } : a);
+  save("alerts", alertsData);
+  render();
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+function render() {
+  const latest = marketData.length > 0 ? marketData[marketData.length - 1] : null;
+  const prev = marketData.length > 1 ? marketData[marketData.length - 2] : null;
+  const activeAlerts = alertsData.filter(a => !a.resolved);
+
+  // Alert badge
+  const badge = document.getElementById("alertBadge");
+  const alertIcon = document.getElementById("alertIcon");
+  if (activeAlerts.length > 0) {
+    badge.textContent = activeAlerts.length;
+    badge.classList.remove("hidden");
+    alertIcon.textContent = "🔔";
+  } else {
+    badge.classList.add("hidden");
+    alertIcon.textContent = "🔕";
+  }
+
+  // ─── Dashboard ───
+  if (currentTab === "dashboard") {
+    const page = document.getElementById("page-dashboard");
+    if (!latest) {
+      page.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div class="empty-title">Sin datos aún</div><div class="empty-desc">Ve a la pestaña Captura para registrar los primeros datos del mercado.</div></div>';
+      return;
+    }
+    const varFNC = latest?.precio_fnc && prev?.precio_fnc ? ((latest.precio_fnc - prev.precio_fnc) / prev.precio_fnc * 100) : null;
+    const varNY = latest?.bolsa_ny && prev?.bolsa_ny ? ((latest.bolsa_ny - prev.bolsa_ny) / prev.bolsa_ny * 100) : null;
+
+    const ranking = coopData
+      .filter(p => p.fecha === latest.fecha)
+      .sort((a, b) => b.precio_carga - a.precio_carga)
+      .map((p, i) => ({ ...p, rank: i + 1, dif: latest.precio_fnc ? p.precio_carga - latest.precio_fnc : null }));
+
+    let html = `<div class="section-label">Mercado · ${latest.fecha}</div>`;
+    html += '<div class="kpi-grid">';
+    html += kpiHTML("Precio FNC", fCOP(latest.precio_fnc), "COP/carga 125kg", varFNC, "var(--green)");
+    html += kpiHTML("Bolsa NY", fNY(latest.bolsa_ny), "Contrato C", varNY, "var(--gold)");
+    html += kpiHTML("TRM", fUSD(latest.trm), "COP/USD", null, "var(--caramel)");
+    html += kpiHTML("Alertas", activeAlerts.length, activeAlerts.length === 0 ? "Sin alertas" : "activas", null, activeAlerts.length > 0 ? "var(--rust)" : "var(--green)");
+    html += '</div>';
+
+    // Chart placeholder (using CSS bar chart)
+    const last10 = marketData.slice(-10);
+    if (last10.length > 2 && last10.some(m => m.precio_fnc)) {
+      const vals = last10.map(m => m.precio_fnc || 0);
+      const max = Math.max(...vals);
+      const min = Math.min(...vals.filter(v => v > 0));
+      html += '<div class="card"><div class="card-title">Precio FNC — Últimos días</div>';
+      html += '<div style="display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px">';
+      last10.forEach(m => {
+        const v = m.precio_fnc || 0;
+        const h = v > 0 ? Math.max(10, ((v - min * 0.95) / (max * 1.05 - min * 0.95)) * 110) : 0;
+        html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+          <div style="font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums">${v > 0 ? (v/1000).toFixed(0) : ""}</div>
+          <div style="width:100%;height:${h}px;background:var(--green);border-radius:4px 4px 0 0;min-width:12px;opacity:${m.fecha===latest.fecha?1:0.6}"></div>
+          <div style="font-size:9px;color:var(--muted)">${shortD(m.fecha)}</div>
+        </div>`;
+      });
+      html += '</div></div>';
+    }
+
+    // Ranking
+    if (ranking.length > 0) {
+      html += '<div class="card"><div class="card-title">Ranking Cooperativas</div>';
+      ranking.forEach((r, i) => {
+        const cls = i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "other";
+        const difCls = r.dif != null && r.dif > DIF_MAX ? "alert" : r.dif > 0 ? "positive" : "";
+        html += `<div class="rank-row">
+          <div style="display:flex;align-items:center">
+            <span class="rank-num ${cls}">${r.rank}</span>
+            <span class="rank-name">${r.nombre}</span>
+          </div>
+          <div>
+            <div class="rank-price">${fCOP(r.precio_carga)}</div>
+            ${r.dif != null ? `<div class="rank-dif ${difCls}">${r.dif >= 0 ? "+" : ""}${fCOP(r.dif)} vs FNC</div>` : ""}
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    page.innerHTML = html;
+  }
+
+  // ─── Captura ───
+  if (currentTab === "captura") {
+    const page = document.getElementById("page-captura");
+    let coopOpts = COOPS.map(c => `<option value="${c.id}">${c.nombre}</option>`).join("");
+    let factorOpts = [94,92,90,88,87].map(f => `<option value="${f}">${f}</option>`).join("");
+    page.innerHTML = `
+      <div class="section-label">Captura de datos</div>
+      <div class="card">
+        <label class="form-label">Fecha</label>
+        <input type="date" id="capDate" value="${todayStr()}">
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" style="margin:0">Datos de Mercado</div>
+          <button class="btn-sm" id="btnFetchTRM" onclick="fetchTRM()">Obtener TRM</button>
+        </div>
+        <label class="form-label">Precio FNC (COP/carga)</label>
+        <input type="text" inputmode="numeric" id="capFNC" placeholder="2.405.000">
+        <label class="form-label">Bolsa NY (¢/lb)</label>
+        <input type="text" inputmode="decimal" id="capNY" placeholder="312.85">
+        <label class="form-label">TRM (COP/USD)</label>
+        <input type="text" inputmode="decimal" id="capTRM" placeholder="3315.75">
+        <button class="btn-primary" onclick="saveMarket()">Guardar Mercado</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Precio Cooperativa</div>
+        <label class="form-label">Cooperativa</label>
+        <select id="capCoopId">${coopOpts}</select>
+        <div class="form-row">
+          <div>
+            <label class="form-label">Precio (COP/carga)</label>
+            <input type="text" inputmode="numeric" id="capCoopPrice" placeholder="2.420.000">
+          </div>
+          <div>
+            <label class="form-label">Factor</label>
+            <select id="capCoopFactor">${factorOpts}</select>
+          </div>
+        </div>
+        <button class="btn-primary dark" onclick="saveCoopPrice()">Guardar Precio Cooperativa</button>
+      </div>`;
+  }
+
+  // ─── Histórico ───
+  if (currentTab === "historico") {
+    const page = document.getElementById("page-historico");
+    let html = `<div class="section-label">Histórico · ${marketData.length} registros</div>`;
+
+    if (marketData.length > 0) {
+      // Bar charts for FNC, NY, TRM
+      const last15 = marketData.slice(-15);
+      ["precio_fnc", "bolsa_ny", "trm"].forEach(field => {
+        const names = { precio_fnc: "Precio FNC", bolsa_ny: "Bolsa NY (¢/lb)", trm: "TRM (COP/USD)" };
+        const vals = last15.map(m => m[field] || 0).filter(v => v > 0);
+        if (vals.length < 2) return;
+        const max = Math.max(...vals), min = Math.min(...vals);
+        html += `<div class="card"><div class="card-title">${names[field]}</div>`;
+        html += '<div style="display:flex;align-items:flex-end;gap:3px;height:130px;padding-top:8px">';
+        last15.forEach(m => {
+          const v = m[field] || 0;
+          const h = v > 0 ? Math.max(8, ((v - min * 0.97) / (max * 1.03 - min * 0.97)) * 120) : 0;
+          const colors = { precio_fnc: "var(--green)", bolsa_ny: "var(--gold)", trm: "var(--caramel)" };
+          const label = field === "precio_fnc" ? (v/1000).toFixed(0) : field === "trm" ? v.toFixed(0) : v.toFixed(1);
+          html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div style="font-size:8px;color:var(--muted);font-variant-numeric:tabular-nums">${v > 0 ? label : ""}</div>
+            <div style="width:100%;height:${h}px;background:${colors[field]};border-radius:3px 3px 0 0;min-width:8px;opacity:0.75"></div>
+            <div style="font-size:8px;color:var(--muted)">${shortD(m.fecha)}</div>
+          </div>`;
+        });
+        html += '</div></div>';
+      });
+
+      // Data table
+      html += '<div class="card"><div class="card-title">Datos registrados</div><div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Fecha</th><th>FNC</th><th>NY</th><th>TRM</th></tr></thead><tbody>';
+      [...marketData].reverse().slice(0, 30).forEach(m => {
+        html += `<tr><td>${shortD(m.fecha)}</td><td>${m.precio_fnc ? (m.precio_fnc/1000).toFixed(0)+"K" : "—"}</td><td>${m.bolsa_ny?.toFixed(1) || "—"}</td><td>${m.trm?.toFixed(0) || "—"}</td></tr>`;
+      });
+      html += '</tbody></table></div></div>';
+    } else {
+      html += '<div class="empty"><div class="empty-icon">📈</div><div class="empty-title">Sin datos históricos</div><div class="empty-desc">Registra datos del mercado para ver gráficas y tablas.</div></div>';
+    }
+    page.innerHTML = html;
+  }
+
+  // ─── Alertas ───
+  if (currentTab === "alertas") {
+    const page = document.getElementById("page-alertas");
+    let html = `<div class="section-label">Alertas · ${activeAlerts.length} activas</div>`;
+    if (activeAlerts.length > 0) {
+      activeAlerts.forEach(a => {
+        const cls = a.severidad === "critical" ? "critical" : a.severidad === "info" ? "info" : "";
+        html += `<div class="alert-card ${cls}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="alert-meta">${a.regla} · ${a.fecha}</div>
+              <div class="alert-msg">${a.mensaje}</div>
+            </div>
+            <button class="btn-sm muted" onclick="resolveAlert(${a.id})">Resolver</button>
+          </div>
+        </div>`;
+      });
+    } else {
+      html += '<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">Sin alertas activas</div><div class="empty-desc">Las alertas se generan automáticamente al registrar precios de cooperativas.</div></div>';
+    }
+    page.innerHTML = html;
+  }
+}
+
+function kpiHTML(label, value, sub, change, color) {
+  let changeHTML = "";
+  if (change != null) {
+    const cls = change >= 0 ? "up" : "down";
+    const arrow = change >= 0 ? "▲" : "▼";
+    changeHTML = `<div class="kpi-change ${cls}">${arrow} ${change >= 0 ? "+" : ""}${change.toFixed(1)}%</div>`;
+  }
+  return `<div class="kpi">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value" style="color:${color}">${value}</div>
+    ${sub ? `<div class="kpi-sub">${sub}</div>` : ""}
+    ${changeHTML}
+  </div>`;
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>
